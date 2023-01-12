@@ -1,0 +1,102 @@
+<aiml version="1.0.1" encoding="UTF-8">
+
+<!-- Greetings and Politeness -->
+<category> <pattern> HELLO </pattern>
+  <template>Hello! How are you?</template> </category>
+
+<category> <pattern> HELLO * </pattern>
+  <template><srai>HELLO</srai></template> </category>
+
+<category> <pattern> HI </pattern>
+  <template><srai>HELLO</srai></template> </category>
+
+<category> <pattern> HI * </pattern>
+  <template><srai>HELLO</srai></template> </category>
+
+<category><pattern> I AM FINE </pattern>
+  <template>That's good to know. What would you like to discuss about?</template></category>
+
+<category><pattern> BYE </pattern>
+  <template>#0$Bye! Nice talking to you. You take care now.</template></category>
+
+<category><pattern> GOODBYE </pattern>
+  <template><srai>BYE</srai></template></category>
+
+<category><pattern> EXIT </pattern>
+  <template><srai>BYE</srai></template></category>
+
+<category> <pattern> THANKS </pattern>
+  <template>You are welcome.</template></category>
+
+<category> <pattern> THANK YOU </pattern>
+  <template><srai>THANKS</srai></template></category>
+
+<category> <pattern> CHEERS </pattern>
+  <template>Sure mate.</template></category>
+
+<category> <pattern> CHEERS * </pattern>
+  <template>Sure mate.</template></category>
+
+<!-- Makeup Questions -->
+
+<category> <pattern> WHAT BRUSHES ARE USED IN MAKEUP</pattern>
+ <template> There are a variety of brushes, brushes are most useful for eye makeup. To list all the available brushes would be too long. </template> </category>
+
+<category> <pattern> WHAT BRUSHES * </pattern>
+  <template> <srai> WHAT BRUSHES ARE USED IN MAKEUP </srai> </template> </category>
+
+<category> <pattern> WHAT * BRUSHES * </pattern>
+  <template> <srai> WHAT BRUSHES ARE USED IN MAKEUP </srai> </template> </category>
+
+<category> <pattern> WHAT SPONGES ARE USED IN MAKEUP</pattern>
+ <template> Sponges are typically used one time and disposed, for this reason they can be used in many different parts of makeup. </template> </category>
+
+<category> <pattern> * SPONGE * </pattern>
+  <template> <srai> WHAT SPONGES ARE USED IN MAKEUP </srai> </template> </category>
+
+<category> <pattern> * SPONGES * </pattern>
+  <template> <srai> WHAT SPONGES ARE USED IN MAKEUP </srai> </template> </category>
+
+<category> <pattern> DIFFERENT TYPES OF EYELINER</pattern>
+ <template> Eyeliner comes in different forms, liquid pen is popular. There is also pencil and gel. Gel eyeliner comes in pots and is applied with a brush. </template> </category>
+
+<category> <pattern> * TYPE * EYELINER</pattern>
+<template> <srai> DIFFERENT TYPES OF EYELINER </srai> </template> </category>
+
+<category> <pattern> * EYELINER TYPES *</pattern>
+<template> <srai> DIFFERENT TYPES OF EYELINER </srai> </template> </category>
+
+<category> <pattern> IS MAKEUP ANIMAL CRUELTY FREE</pattern>
+ <template> Many makeup brands have been looking into the future and considering cruelty free options for their products. Such brands include: KVD, Fenty Beauty, Lush and Urban Decay </template> </category>
+
+<category> <pattern> * CRUELTY FREE</pattern>
+<template> <srai> IS MAKEUP ANIMAL CRUELTY FREE </srai> </template> </category>
+
+<category> <pattern> * ANIMAL CRUELTY FREE *</pattern>
+<template> <srai> IS MAKEUP ANIMAL CRUELTY FREE </srai> </template> </category>
+
+<!-- Wikipedia API -->
+<category><pattern> WHAT IS A * </pattern>
+  <template>#1$<star index="1"/></template></category>
+
+<category><pattern> WHAT IS AN * </pattern>
+  <template><srai>WHAT IS A <star/></srai></template></category>
+
+<category><pattern> WHAT IS * </pattern>
+  <template><srai>WHAT IS A <star/></srai></template></category>
+
+<category><pattern> DEFINE * </pattern>
+  <template><srai>WHAT IS A <star/></srai></template></category>
+
+<category><pattern> WHO IS * </pattern>
+  <template><srai>WHAT IS A <star/></srai></template></category>
+
+<category><pattern> WHERE IS * </pattern>
+  <template><srai>WHERE IS <star/></srai></template></category>
+
+
+<!-- Default reaction -->
+<category><pattern> * </pattern>
+  <template>#99$<star index="1"/></template></category>
+
+</aiml>
