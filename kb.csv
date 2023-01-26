@@ -1,0 +1,18 @@
+British (x) -> European (x)
+British (Tim)
+-European (Jim)
+
+
+Maybelline is a makeup brand
+Tesco is not a makeup brand
+Maybelline sells eyeshadows
+eyeshadows come in palletes
+
+
+
+
+Base (Foundation)
+Eyes (e) -> -Base (e)
+
+Apply (x, y) & Eyes (y) -> Eyeshadow (x)
+Apply (q, p) & Base (p) -> 
