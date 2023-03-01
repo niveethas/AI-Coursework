@@ -41,8 +41,6 @@ key = 'f3deb28895834d398c42e0ba2cb47ed0'
 endpoint = 'https://section-d.cognitiveservices.azure.com/'
 region = 'uksouth'
 
-#global variable for the lines found in the image.
-imageLines= ''
 
 # Get client for computer vision service
 computervision_client = ComputerVisionClient(endpoint, CognitiveServicesCredentials(key))
@@ -75,6 +73,118 @@ def azure_Translator(region, key, text, target_Lang='fr'):
     translate_Response = translate_Request.json()
     return translate_Response[0]["translations"][0]["text"]
 
+language_Code_Dict = {
+"Afrikaans":"af",
+"Albanian":"sq",
+"Amharic":"am",
+"Arabic":"ar",
+"Armenian":"hy",
+"Assamese":"as",
+"Azerbaijani (Latin)":"az",
+"Bangla":"bn",
+"Bashkir":"ba",
+"Basque":"eu",
+"Bosnian (Latin)":"bs",
+"Bulgarian":"bg",
+"Cantonese (Traditional)":"yue",
+"Catalan":"ca",
+"Chinese (Literary)":"lzh",
+"Chinese Simplified":"zh-Hans",
+"Chinese Traditional":"zh-Hant",
+"Croatian":"hr",
+"Czech":"cs",
+"Danish":"da",
+"Dari":"prs",
+"Divehi":"dv",
+"Dutch":"nl",
+"English":"en",
+"Estonian":"et",
+"Faroese":"fo",
+"Fijian":"fj",
+"Filipino":"fil",
+"Finnish":"fi",
+"French":"fr",
+"French (Canada)":"fr-ca",
+"Galician":"gl",
+"Georgian":"ka",
+"German":"de",
+"Greek":"el",
+"Gujarati":"gu",
+"Haitian Creole":"ht",
+"Hebrew":"he",
+"Hindi":"hi",
+"Hmong Daw (Latin)":"mww",
+"Hungarian":"hu",
+"Icelandic":"is",
+"Indonesian":"id",
+"Inuinnaqtun":"ikt",
+"Inuktitut":"iu",
+"Inuktitut (Latin)":"iu-Latn",
+"Irish":"ga",
+"Italian":"it",
+"Japanese":"ja",
+"Kannada":"kn",
+"Kazakh":"kk",
+"Khmer":"km",
+"Klingon":"tlh-Latn",
+"Klingon (plqaD)":"tlh-Piqd",
+"Korean":"ko",
+"Kurdish (Central)":"ku",
+"Kurdish (Northern)":"kmr",
+"Kyrgyz (Cyrillic)":"ky",
+"Lao":"lo",
+"Latvian":"lv",
+"Lithuanian":"lt",
+"Macedonian":"mk",
+"Malagasy":"mg",
+"Malay (Latin)":"ms",
+"Malayalam":"ml",
+"Maltese":"mt",
+"Maori":"mi",
+"Marathi":"mr",
+"Mongolian (Cyrillic)":"mn-Cyrl",
+"Mongolian (Traditional)":"mn-Mong",
+"Myanmar":"my",
+"Nepali":"ne",
+"Norwegian":"nb",
+"Odia":"or",
+"Pashto":"ps",
+"Persian":"fa",
+"Polish":"pl",
+"Portuguese (Brazil)":"pt",
+"Portuguese (Portugal)":"pt-pt",
+"Punjabi":"pa",
+"Queretaro Otomi":"otq",
+"Romanian":"ro",
+"Russian":"ru",
+"Samoan (Latin)":"sm",
+"Serbian (Cyrillic)":"sr-Cyrl",
+"Serbian (Latin)":"sr-Latn",
+"Slovak":"sk",
+"Slovenian":"sl",
+"Somali (Arabic)":"so",
+"Spanish":"es",
+"Swahili (Latin)":"sw",
+"Swedish":"sv",
+"Tahitian":"ty",
+"Tamil":"ta",
+"Tatar (Latin)":"tt",
+"Telugu":"te",
+"Thai":"th",
+"Tibetan":"bo",
+"Tigrinya":"ti",
+"Tongan":"to",
+"Turkish":"tr",
+"Turkmen (Latin)":"tk",
+"Ukrainian":"uk",
+"Upper Sorbian":"hsb",
+"Urdu":"ur",
+"Uyghur (Arabic)":"ug",
+"Uzbek (Latin)":"uz",
+"Vietnamese":"vi",
+"Welsh":"cy",
+"Yucatec Maya":"yua"
+}
 
 print("\nWelcome to this Makeup chatbot. Please feel free to ask questions from me!\n")
 
@@ -120,36 +230,38 @@ while True:
                         print("Sorry, I could not find an example for the brand and product you gave me")
                 except:
                     print("I did not get that, please try again.")
+            
             elif cmd == 99:
+        
                 if (userInput.startswith("Show me text from")):
-                    print ('testing elif - section d')
-                    input_Array=userInput.split(" ")
-                    image_Path = input_Array[3]
-                    
-                    #ADD FUNCTIONALITY TO CHOOSE LANGUAGE - COMAPRE ON LIST?
-                    chosen_Lang = input_Array[5]
-                    
-                    
-                    # Read the image file
-                    #image_path = 'test-quote.jpg'
-                    found_Image = open(image_Path, "rb")
-
-                    # Use Computer Vision to find text in image
-                    image_Results = computervision_client.recognize_printed_text_in_stream(found_Image)
-
-                    #reads the lines in the image one by one
-                    for a_Region in image_Results.regions:
-                        for a_Line in a_Region.lines:
+                        try:
+                            input_Array=userInput.split(" ")
+                            image_Path = input_Array[4]
+                            
+                            #compares the language input by the user with dictionary
+                            chosen_Lang = input_Array[6]
+                            chosen_Lang_code = language_Code_Dict[chosen_Lang]
+                            
+                            # Read the image file
+                            #image_path = 'test-quote.jpg'
+                            found_Image = open(image_Path, "rb")
+        
+                            # Use Computer Vision to find text in image
+                            image_Results = computervision_client.recognize_printed_text_in_stream(found_Image)
+        
                             # Read the words in the line of text
                             a_Line_text = ''
-                            for a_Word in a_Line.words:
-                                a_Line_text += a_Word.text + ' '
-                                imageLines = a_Line_text
-                           # print(line_text.rstrip())
-                           
-                    translated_Image = azure_Translator(region, key, imageLines, to_lang='it-IT')
-                    print('{} -> {}'.format(imageLines,translated_Image))
-               
+                            #reads the lines in the image one by one
+                            for a_Region in image_Results.regions:
+                                for a_Line in a_Region.lines:
+                                    for a_Word in a_Line.words:
+                                        a_Line_text += a_Word.text + ' '
+                                   
+                            translated_Image = azure_Translator(region, key, a_Line_text, target_Lang=chosen_Lang_code)
+                            print('{} -> {}'.format(a_Line_text,translated_Image))
+                        except:
+                            print("Sorry, I could not find the image and complete translation")
+                    
                 else:
             
                     #if no other options fit, the user is directed towards the CSV file.
