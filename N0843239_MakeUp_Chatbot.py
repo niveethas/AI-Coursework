@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Feb 28 17:49:57 2023
-
-@author: N0843239
-"""
 
 #!pip install aiml
 #!pip install scikit-learn
@@ -27,7 +22,10 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 import os
 import requests, uuid, json
-
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.utils import load_img, img_to_array
+from keras.preprocessing.image import ImageDataGenerator
 
 
 # Create a Kernel object. No string encoding (all I/O is unicode)
@@ -47,7 +45,6 @@ computervision_client = ComputerVisionClient(endpoint, CognitiveServicesCredenti
 
 
 #This function has been derived from #https://github.com/MicrosoftDocs/ai-fundamentals/blob/master/02c%20-%20Translation.ipynb
-
 def azure_Translator(region, key, text, target_Lang='fr'):
 
     # Create the URL for the Text Translator service REST request
@@ -72,6 +69,26 @@ def azure_Translator(region, key, text, target_Lang='fr'):
     translate_Request = requests.post(constructed_url, headers=headers, json=body)
     translate_Response = translate_Request.json()
     return translate_Response[0]["translations"][0]["text"]
+
+def image_Checker(imagepath):
+    predict_Image = load_img(imagepath, target_size= (80,80))
+    predict_Image_Modified = img_to_array(predict_Image)
+    predict_Image_Modified = predict_Image_Modified / 255
+    predict_Image_Modified = np.expand_dims(predict_Image_Modified, axis=0)
+    
+    image_Classifier = keras.models.load_model("CNN_Image_Classification_Model.h5")
+    
+    result = image_Classifier.predict(predict_Image_Modified)
+    
+    if result[0][0] <= 0.5:
+        result_Prediction = 'No Make Up'
+        probability = result[0][0]
+        print ("probability = " + str(probability))
+    else:
+        result_Prediction = 'Make Up'
+        probability = 1 - result[0][0]
+        print ("probability = " + str(probability))
+    print("Prediction = " + result_Prediction)
 
 language_Code_Dict = {
 "Afrikaans":"af",
@@ -186,6 +203,8 @@ language_Code_Dict = {
 "Yucatec Maya":"yua"
 }
 
+
+
 print("\nWelcome to this Makeup chatbot. Please feel free to ask questions from me!\n")
 
 while True:
@@ -204,7 +223,7 @@ while True:
         if xmlAnswer[0] == '#':
             params = xmlAnswer[1:].split('$')
             cmd = int(params[0])
-            
+            image_Checker('test-makeup-3.jpg')
             if cmd == 0:
                 print(params[1])
                 break
@@ -230,7 +249,7 @@ while True:
                         print("Sorry, I could not find an example for the brand and product you gave me")
                 except:
                     print("I did not get that, please try again.")
-            
+           
             elif cmd == 99:
         
                 if (userInput.startswith("Show me text from")):
@@ -243,7 +262,6 @@ while True:
                             chosen_Lang_code = language_Code_Dict[chosen_Lang]
                             
                             # Read the image file
-                            #image_path = 'test-quote.jpg'
                             found_Image = open(image_Path, "rb")
         
                             # Use Computer Vision to find text in image
@@ -261,6 +279,7 @@ while True:
                             print('{} -> {}'.format(a_Line_text,translated_Image))
                         except:
                             print("Sorry, I could not find the image and complete translation")
+                if (userInput.startswith("Is this image")):
                     
                 else:
             
@@ -270,11 +289,11 @@ while True:
                         lemmatizer.lemmatize(userInput)
                         inputArray = [userInput]
                         counter = 0
-                        #like 91 has derived from: https://goodboychan.github.io/python/datacamp/natural_language_processing/2020/07/17/04-TF-IDF-and-similarity-scores.html
+                        #derived from: https://goodboychan.github.io/python/datacamp/natural_language_processing/2020/07/17/04-TF-IDF-and-similarity-scores.html
                         # Create TfidfVectorizer object
                         vectorizer = TfidfVectorizer()
                         
-                        #line 93 has derived from: https://stackoverflow.com/questions/58240401/matching-phrase-using-tf-idf-and-cosine-similarity
+                        #derived from: https://stackoverflow.com/questions/58240401/matching-phrase-using-tf-idf-and-cosine-similarity
                         similarity_index_list = cosine_similarity(vectorizer.fit_transform(df["Question"]), vectorizer.transform(inputArray)).flatten()
                        
                         #stores the value of the answer at the index position of the best match
