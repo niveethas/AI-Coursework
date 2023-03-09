@@ -71,6 +71,7 @@ def azure_Translator(region, key, text, target_Lang='fr'):
     return translate_Response[0]["translations"][0]["text"]
 
 def image_Checker(imagepath):
+    #function has been derived from https://www.analyticsvidhya.com/blog/2021/06/beginner-friendly-project-cat-and-dog-classification-using-cnn/#:~:text=Cat%20and%20dog%20classification%20using%20CNN,-Convolutional%20Neural%20Network&text=Neural%20networks%20can%20be%20trained,tenths%20to%20hundreds%20of%20images.
     predict_Image = load_img(imagepath, target_size= (80,80))
     predict_Image_Modified = img_to_array(predict_Image)
     predict_Image_Modified = predict_Image_Modified / 255
@@ -80,15 +81,15 @@ def image_Checker(imagepath):
     
     result = image_Classifier.predict(predict_Image_Modified)
     
-    if result[0][0] <= 0.5:
-        result_Prediction = 'No Make Up'
+    if result[0][0] >= 0.5:
+        result_Prediction = 'Make up is worn'
         probability = result[0][0]
         print ("probability = " + str(probability))
     else:
-        result_Prediction = 'Make Up'
+        result_Prediction = 'Make up is not worn'
         probability = 1 - result[0][0]
         print ("probability = " + str(probability))
-    print("Prediction = " + result_Prediction)
+    print("\nPrediction -> " + result_Prediction+"\n")
 
 language_Code_Dict = {
 "Afrikaans":"af",
@@ -223,7 +224,6 @@ while True:
         if xmlAnswer[0] == '#':
             params = xmlAnswer[1:].split('$')
             cmd = int(params[0])
-            image_Checker('test-makeup-3.jpg')
             if cmd == 0:
                 print(params[1])
                 break
@@ -279,8 +279,14 @@ while True:
                             print('{} -> {}'.format(a_Line_text,translated_Image))
                         except:
                             print("Sorry, I could not find the image and complete translation")
-                if (userInput.startswith("Is this image")):
-                    
+                if (userInput.startswith("Does she wear makeup in")):
+                    try:
+                        input_Array = userInput.split(" ")
+                        input_Array[5].replace('?', '')
+                        image_Path = input_Array[5];
+                        image_Checker(image_Path)
+                    except:
+                        print("Image could not be found")
                 else:
             
                     #if no other options fit, the user is directed towards the CSV file.
