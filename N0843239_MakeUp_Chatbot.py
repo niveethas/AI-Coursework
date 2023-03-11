@@ -4,7 +4,7 @@
 #!pip install scikit-learn
 #!pip install nltk
 #!pip install azure-cognitiveservices-vision-computervision 
-
+#!pip install azure-ai-vision
 import aiml
 import sklearn
 from sklearn.metrics.pairwise import cosine_similarity
@@ -26,8 +26,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.utils import load_img, img_to_array
 from keras.preprocessing.image import ImageDataGenerator
-
-
+import azure.ai.vision as aiv
 # Create a Kernel object. No string encoding (all I/O is unicode)
 kern = aiml.Kernel()
 kern.setTextEncoding(None)
@@ -39,14 +38,14 @@ key = 'f3deb28895834d398c42e0ba2cb47ed0'
 endpoint = 'https://section-d.cognitiveservices.azure.com/'
 region = 'uksouth'
 
+#
 
 # Get client for computer vision service
 computervision_client = ComputerVisionClient(endpoint, CognitiveServicesCredentials(key))
 
 
-#This function has been derived from #https://github.com/MicrosoftDocs/ai-fundamentals/blob/master/02c%20-%20Translation.ipynb
 def azure_Translator(region, key, text, target_Lang='fr'):
-
+#This function has been derived from #https://github.com/MicrosoftDocs/ai-fundamentals/blob/master/02c%20-%20Translation.ipynb
     # Create the URL for the Text Translator service REST request
     path = 'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0'
     params = '&to={}'.format(target_Lang)
@@ -83,12 +82,9 @@ def image_Checker(imagepath):
     
     if result[0][0] >= 0.5:
         result_Prediction = 'Make up is worn'
-        probability = result[0][0]
-        print ("probability = " + str(probability))
     else:
         result_Prediction = 'Make up is not worn'
-        probability = 1 - result[0][0]
-        print ("probability = " + str(probability))
+    
     print("\nPrediction -> " + result_Prediction+"\n")
 
 language_Code_Dict = {
@@ -277,6 +273,9 @@ while True:
                                    
                             translated_Image = azure_Translator(region, key, a_Line_text, target_Lang=chosen_Lang_code)
                             print('{} -> {}'.format(a_Line_text,translated_Image))
+                            #print("\n Should I further analyse this image? Y/N")
+                            #userInput = input("> ")
+                                                          
                         except:
                             print("Sorry, I could not find the image and complete translation")
                 if (userInput.startswith("Does she wear makeup in")):
@@ -285,6 +284,10 @@ while True:
                         input_Array[5].replace('?', '')
                         image_Path = input_Array[5];
                         image_Checker(image_Path)
+                        #code has been derived from https://youtu.be/2gW-JzY4JgU
+                        with open (image_Path, 'rb') as chosen_Image:
+                            result_Caption = computervision_client.describe_image_in_stream(chosen_Image)
+                            print("Content found using Cloud -> " + result_Caption.captions[0].text)
                     except:
                         print("Image could not be found")
                 else:
