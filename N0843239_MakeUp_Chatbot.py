@@ -5,6 +5,7 @@
 #!pip install nltk
 #!pip install azure-cognitiveservices-vision-computervision 
 #!pip install azure-ai-vision
+#!pip install azure-ai-textanalytics==5.2.0
 import aiml
 import sklearn
 from sklearn.metrics.pairwise import cosine_similarity
@@ -26,30 +27,61 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.utils import load_img, img_to_array
 from keras.preprocessing.image import ImageDataGenerator
-import azure.ai.vision as aiv
+from azure.ai.textanalytics import TextAnalyticsClient
+from azure.core.credentials import AzureKeyCredential
+
 # Create a Kernel object. No string encoding (all I/O is unicode)
 kern = aiml.Kernel()
 kern.setTextEncoding(None)
 kern.bootstrap(learnFiles="MakeUpBot.xml")
 lemmatizer = WordNetLemmatizer()
 
-#set up Azure Cognitive Service
-key = 'f3deb28895834d398c42e0ba2cb47ed0'
-endpoint = 'https://section-d.cognitiveservices.azure.com/'
+#set up Azure Translator Service
+key = '061d8e84da6b4fbc8d86453b2f2c92bd'
+endpoint = 'https://api.cognitive.microsofttranslator.com/'
 region = 'uksouth'
 
-#
+#set up Azure Computer Vision Service
+key1 = 'd898006da33c4b3abc3e76b8d3a93ddb'
+endpoint1 = 'https://imageanalysiscomputervision.cognitiveservices.azure.com/'
+region1 = 'uksouth'
+
+#set up Azure Language Sentitment Analysis
+key2 = '885cb5d119ea45beb64a67f3c1244ed0'
+endpoint2 = 'https://taskdsentimentanalysis.cognitiveservices.azure.com/'
+region2 = 'eastus'
 
 # Get client for computer vision service
-computervision_client = ComputerVisionClient(endpoint, CognitiveServicesCredentials(key))
+computervision_client = ComputerVisionClient(endpoint1, CognitiveServicesCredentials(key1))
 
+
+def azure_Sentiment(text):
+#function has been derived from https://learn.microsoft.com/en-us/azure/cognitive-services/language-service/sentiment-opinion-mining/quickstart?tabs=windows&pivots=programming-language-python
+    language_Key = AzureKeyCredential(key2)
+    textanalytics_Client = TextAnalyticsClient(endpoint=endpoint2,credential=language_Key)
+    text_Doc = [text]
+    sentiment_Result = textanalytics_Client.analyze_sentiment(text_Doc, show_opinion_mining=True)
+    
+    text_Result = [doc for doc in sentiment_Result if not doc.is_error]
+    
+    positives = [doc for doc in text_Result if doc.sentiment == "positive"]
+    negatives = [doc for doc in text_Result if doc.sentiment == "negative"]
+    
+    
+    for doc in text_Result:
+        for sentence in doc.sentences:
+            print("\nSentence sentiment: {}".format(sentence.sentiment+"\n"))
 
 def azure_Translator(region, key, text, target_Lang='fr'):
 #This function has been derived from #https://github.com/MicrosoftDocs/ai-fundamentals/blob/master/02c%20-%20Translation.ipynb
-    # Create the URL for the Text Translator service REST request
-    path = 'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0'
-    params = '&to={}'.format(target_Lang)
-    constructed_url = path + params
+ # Create the URL for the Text Translator service REST request
+    path = '/translate'
+    constructed_url = endpoint + path
+
+    params = {
+        'api-version':'3.0',
+        'to': target_Lang
+        }
 
     # Prepare the request headers
     headers = {
@@ -65,7 +97,7 @@ def azure_Translator(region, key, text, target_Lang='fr'):
     }]
 
     # Get the translation
-    translate_Request = requests.post(constructed_url, headers=headers, json=body)
+    translate_Request = requests.post(constructed_url, params=params, headers=headers, json=body)
     translate_Response = translate_Request.json()
     return translate_Response[0]["translations"][0]["text"]
 
@@ -226,7 +258,7 @@ while True:
             
             elif cmd == 1:
                 #User is able to ask for a branded product type. 
-                #The question must begin with 'what is' 
+                #The question must begin with 'what is a' 'what is an' 'name a' 
                 try:
                     responseSuccess = False
                     URL_makeupAPI = r"https://makeup-api.herokuapp.com/api/v1/products.json?"
@@ -246,52 +278,50 @@ while True:
                 except:
                     print("I did not get that, please try again.")
            
-            elif cmd == 99:
-        
-                if (userInput.startswith("Show me text from")):
-                        try:
-                            input_Array=userInput.split(" ")
-                            image_Path = input_Array[4]
-                            
-                            #compares the language input by the user with dictionary
-                            chosen_Lang = input_Array[6]
-                            chosen_Lang_code = language_Code_Dict[chosen_Lang]
-                            
-                            # Read the image file
-                            found_Image = open(image_Path, "rb")
-        
-                            # Use Computer Vision to find text in image
-                            image_Results = computervision_client.recognize_printed_text_in_stream(found_Image)
-        
-                            # Read the words in the line of text
-                            a_Line_text = ''
-                            #reads the lines in the image one by one
-                            for a_Region in image_Results.regions:
-                                for a_Line in a_Region.lines:
-                                    for a_Word in a_Line.words:
-                                        a_Line_text += a_Word.text + ' '
-                                   
-                            translated_Image = azure_Translator(region, key, a_Line_text, target_Lang=chosen_Lang_code)
-                            print('{} -> {}'.format(a_Line_text,translated_Image))
-                            #print("\n Should I further analyse this image? Y/N")
-                            #userInput = input("> ")
-                                                          
-                        except:
-                            print("Sorry, I could not find the image and complete translation")
-                if (userInput.startswith("Does she wear makeup in")):
-                    try:
-                        input_Array = userInput.split(" ")
-                        input_Array[5].replace('?', '')
-                        image_Path = input_Array[5];
-                        image_Checker(image_Path)
-                        #code has been derived from https://youtu.be/2gW-JzY4JgU
-                        with open (image_Path, 'rb') as chosen_Image:
-                            result_Caption = computervision_client.describe_image_in_stream(chosen_Image)
-                            print("Content found using Cloud -> " + result_Caption.captions[0].text)
-                    except:
-                        print("Image could not be found")
-                else:
+            elif cmd == 4:
+                #for image translation question must begin with 'show me text from'
+                try:
+                    input_Array=userInput.split(" ")
+                    image_Path = input_Array[4]
+                    
+                    #compares the language input by the user with dictionary
+                    chosen_Lang = input_Array[6]
+                    chosen_Lang_code = language_Code_Dict[chosen_Lang]
+                    
+                    # Read the image file
+                    found_Image = open(image_Path, "rb")
+
+                    # Use Computer Vision to find text in image
+                    image_Results = computervision_client.recognize_printed_text_in_stream(found_Image)
+
+                    # Read the words in the line of text
+                    a_Line_text = ''
+                    #reads the lines in the image one by one
+                    for a_Region in image_Results.regions:
+                        for a_Line in a_Region.lines:
+                            for a_Word in a_Line.words:
+                                a_Line_text += a_Word.text + ' '
+                           
+                    translated_Image = azure_Translator(region, key, a_Line_text, target_Lang=chosen_Lang_code)
+                    print('\n{} -> {}'.format(a_Line_text,translated_Image))
+                    azure_Sentiment(a_Line_text)
+                except:
+                    print("Sorry, I could not complete the translation")
             
+            elif cmd == 5:
+                #for image analysis question must begin with 'does she wear makeup in'
+                try:
+                    input_Array = userInput.split(" ")
+                    input_Array[5].replace('?', '')
+                    image_Path = input_Array[5];
+                    image_Checker(image_Path)
+                    #code has been derived from https://youtu.be/2gW-JzY4JgU
+                    with open (image_Path, 'rb') as chosen_Image:
+                        result_Caption = computervision_client.describe_image_in_stream(chosen_Image)
+                        print("Content found using Cloud -> " + result_Caption.captions[0].text)
+                except:
+                    print("Image could not be found")
+            elif cmd == 99:
                     #if no other options fit, the user is directed towards the CSV file.
                     try:
                         df = pd.read_csv('QA.csv').dropna()

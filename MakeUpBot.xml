@@ -1,4 +1,4 @@
-<aiml version="1.0.1" encoding="UTF-8">
+ <aiml version="1.0.1" encoding="UTF-8">
 
 <!-- Greetings and Politeness -->
 <category> <pattern> HELLO </pattern>
@@ -75,24 +75,24 @@
 <category> <pattern> * ANIMAL CRUELTY FREE *</pattern>
 <template> <srai> IS MAKEUP ANIMAL CRUELTY FREE </srai> </template> </category>
 
-<!-- Wikipedia API -->
+<!-- API -->
 <category><pattern> WHAT IS A * </pattern>
   <template>#1$<star index="1"/></template></category>
+
+<category><pattern> NAME A * </pattern>
+  <template><srai>WHAT IS A <star/></srai></template></category>
 
 <category><pattern> WHAT IS AN * </pattern>
   <template><srai>WHAT IS A <star/></srai></template></category>
 
-<category><pattern> WHAT IS * </pattern>
-  <template><srai>WHAT IS A <star/></srai></template></category>
 
-<category><pattern> DEFINE * </pattern>
-  <template><srai>WHAT IS A <star/></srai></template></category>
+<!-- Translator -->
+<category><pattern> SHOW ME TEXT FROM * </pattern>
+  <template>#4$<star index="1"/></template></category>
 
-<category><pattern> WHO IS * </pattern>
-  <template><srai>WHAT IS A <star/></srai></template></category>
-
-<category><pattern> WHERE IS * </pattern>
-  <template><srai>WHERE IS <star/></srai></template></category>
+<!-- Local Image Analysis -->
+<category><pattern> DOES SHE WEAR MAKEUP IN * </pattern>
+  <template>#5$<star index="1"/></template></category>
 
 
 <!-- Default reaction -->
