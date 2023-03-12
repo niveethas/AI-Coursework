@@ -10,6 +10,8 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.optimizers import RMSprop 
+import keras_tuner as kt
+
 
 base_path = os.getcwd()+'/Images'
 
@@ -56,14 +58,39 @@ CNN_Model.compile(optimizer=RMSprop(lr=0.001),
 
 print('\n')
 
-CNN_Model.fit(generate_X_data,
-                   validation_data=generate_y_data,
-                    steps_per_epoch=42,
-                    epochs=10,
-                    validation_steps=16,
-                    verbose=1)
+#CNN_Model.fit(generate_X_data,
+#                   validation_data=generate_y_data,
+ #                   steps_per_epoch=42,
+  #                  epochs=10,
+ #                   validation_steps=15,
+ #                  verbose=1)
 
-test_loss, test_acc = CNN_Model.evaluate(generate_y_data, verbose=2)
-print('\n Test accuracy:', test_acc)
+#test_loss, test_acc = CNN_Model.evaluate(generate_y_data, verbose=2)
+#print('\n Test accuracy:', test_acc)
 
-CNN_Model.save("CNN_Image_Classification_Model.h5")
+#CNN_Model.save("CNN_Image_Classification_Model.h5")
+
+
+def create_model(hyperparam):
+   model = keras.models.Sequential()
+   model.add(layers.Conv2D(
+           filters=hyperparam.Int('convolution_1',min_value=16, max_value=32, step=16), kernel_size=hyperparam.Choice('convolution_1', values = [3,6]),
+           activation='relu',input_shape=(80,80,3)
+                          )),
+   model.add(layers.Conv2D(
+           filters=hyperparam.Int('convolution_2', min_value=32, max_value=64, step=16),kernel_size=hyperparam.Choice('convolution_2', values = [3,6]),
+           activation='relu'
+                          )),
+   model.add(layers.Flatten()),
+   model.add(layers.Dense(256)),
+   model.add(layers.Activation("relu"))
+   model.compile(optimizer=keras.optimizers.Adam(hyperparam.Choice('learning_rate', values=[0.01, 0.001])),
+                loss='binary_crossentropy',
+                metrics=['accuracy'])
+   return model
+
+tuner = kt.Hyperband(create_model,
+                     objective='val_accuracy',
+                     max_epochs=10,
+                     factor=3)
+tuner.search(generate_X_data,validation_data=generate_y_data, epochs=10)
